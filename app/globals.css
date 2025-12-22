@@ -196,6 +196,8 @@
   pointer-events: auto;
 }
 
+
+
 /* Adding garland and ball styles to ensure decorative balls display correctly */
 .garland {
   position: fixed;

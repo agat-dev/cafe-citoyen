@@ -54,12 +54,32 @@ export function AnimatedNav({
   }, [])
 
   const toggleMenu = () => {
-    setIsExpanded(!isExpanded)
+      setIsExpanded((prev) => {
+        const next = !prev;
+        if (typeof window !== 'undefined') {
+          document.body.style.overflow = next ? 'hidden' : '';
+        }
+        return next;
+      });
   }
 
   const handleLinkClick = () => {
-    window.scrollTo({ top: 0, behavior: "instant" })
-    setIsExpanded(false)
+      window.scrollTo({ top: 0, behavior: "instant" })
+      setIsExpanded(false)
+      if (typeof window !== 'undefined') {
+        document.body.style.overflow = '';
+      }
+    // Nettoyage si le menu est fermé par un autre moyen (ex: resize, navigation)
+    useEffect(() => {
+      if (!isExpanded && typeof window !== 'undefined') {
+        document.body.style.overflow = '';
+      }
+      return () => {
+        if (typeof window !== 'undefined') {
+          document.body.style.overflow = '';
+        }
+      };
+    }, [isExpanded]);
   }
 
   const toggleCard = (index: number, e: React.MouseEvent) => {
@@ -71,7 +91,7 @@ export function AnimatedNav({
     <div className={cn("w-full", className)}>
       <nav
         className={cn(
-          "fixed top-0 left-0 right-0 z-[100] transition-all duration-300 min-h-10 backdrop-blur-md bg-white/30",
+          "fixed top-0 left-0 right-0 z-[100] transition-all duration-300 min-h-10 bg-white",
           baseColor,
         )}
       >
@@ -81,7 +101,7 @@ export function AnimatedNav({
             <button
               onClick={toggleMenu}
               className={cn(
-                "flex flex-col justify-center p-2 transition-transform hover:scale-110 relative z-[110]",
+                "flex flex-col justify-center p-2 transition-transform relative z-[110]",
               )}
               aria-label={isExpanded ? "Fermer le menu" : "Ouvrir le menu"}
               style={{ color: menuColor, height: '40px', width: '40px' }}
@@ -111,7 +131,7 @@ export function AnimatedNav({
             <Link
               href={agendaLink}
               onClick={handleLinkClick}
-              className="text-xs font-semibold uppercase tracking-wider transition-all hover:scale-105 hover:shadow-sm bg-foreground text-background rounded-full px-4 py-1.5 shadow-xs relative z-[110]"
+              className="text-xs font-semibold uppercase tracking-wider transition-all hover:scale-105 hover:shadow-sm bg-foreground text-background px-4 py-1.5 shadow-xs relative z-[110]"
             >
               Agenda
             </Link>
@@ -119,10 +139,16 @@ export function AnimatedNav({
         </div>
 
         <div
-          className={cn(
-            "overflow-hidden transition-all duration-500 ease-out",
-            isExpanded ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0",
-          )}
+            className={cn(
+              "overflow-hidden transition-all duration-500 ease-out",
+              isExpanded ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0",
+            )}
+            onMouseEnter={e => {
+              e.currentTarget.classList.add("animated-nav-no-scroll");
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.classList.remove("animated-nav-no-scroll");
+            }}
         >
           {/* Gradient overlay - more opaque at bottom */}
           <div className="relative backdrop-blur-md">
@@ -171,14 +197,14 @@ export function AnimatedNav({
                       <Link
                         href={item.links?.[0]?.href || "/"}
                         onClick={handleLinkClick}
-                        className="relative w-full h-full flex flex-col overflow-hidden rounded-xl group"
+                        className="relative w-full h-full flex flex-col overflow-hidden group"
                       >
                         {/* Content overlay at bottom */}
-                        <div className="relative z-10 mt-auto bg-white rounded-2xl p-4 m-3 shadow-sm">
+                        <div className="relative z-10 mt-auto bg-white p-4 m-3">
                           {/* Category badge */}
                           {item.eventCategory && (
                             <div className="mb-2">
-                              <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-primary/10 text-primary">
+                              <span className="inline-block px-3 py-1 text-xs font-semibold bg-primary/10 text-primary">
                                 {item.eventCategory}
                               </span>
                             </div>

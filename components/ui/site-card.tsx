@@ -159,10 +159,10 @@ export function SiteCard({
       <div className="w-full">
         {/* Category/Date Badge */}
         {(category || date) && (
-          <div className="flex items-center gap-4 mb-2">{/* gap augmenté */}
+          <div className="flex items-center gap-4 mb-2 pt-4">{/* gap augmenté */}
             {category && (
               <span className={cn(
-                "text-[0.5rem] border font-light dark:border-white/[0.2] border-black/[0.2] rounded-full px-2 py-0.5",
+                "text-xs border font-light dark:border-white/[0.2] border-black/[0.2] px-2 py-0.5",
                 "text-black dark:text-white"
               )}>
                 {category}
@@ -183,7 +183,7 @@ export function SiteCard({
 
         {/* Description */}
         {description && (
-          <p className="dark:text-white text-black text-lg md:text-2xl font-light leading-relaxed antialiased line-clamp-3">
+          <p className="dark:text-white text-black text-xs md:text-base font-light leading-relaxed antialiased line-clamp-3">
             {description}
           </p>
         )}

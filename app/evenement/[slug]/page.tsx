@@ -4,7 +4,7 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import type { Metadata } from "next"
 import { PageHeader } from "@/components/page-header"
-import { SiteCard } from "@/components/ui/site-card"
+import { SiteCard, SiteCardGrid } from "@/components/ui/site-card"
 
 type Props = {
   params: Promise<{ slug: string }>
@@ -94,25 +94,25 @@ export default async function EventDetailPage({ params }: Props) {
       </div>
 
 
-      <div className="max-w-3xl mx-auto mb-8">
-        <SiteCard
+
+      <div className="max-w-4xl mx-auto mb-8">
+        <PageHeader
           title={decodeHtmlEntities(event.title.rendered)}
-          description={event.acf?.["sous-titre"]}
-          image={event.acf?.background?.url || featuredImage}
-          imageAlt={event.acf?.background?.alt || event.title.rendered}
-          variant="primary"
+          subtitle={event.acf?.["sous-titre"]}
+          backgroundImage={event.acf?.background?.url || featuredImage}
+          backgroundAlt={event.acf?.background?.alt || event.title.rendered}
         />
       </div>
 
-      {/* Event Meta Information - Right after PageHeader */}
-      <div className="px-3 md:px-6 pb-8 max-w-4xl mx-auto">
-        {/* Taxonomies Badges */}
+
+      {/* Grille design system pour le contenu principal */}
+      <div className="max-w-4xl mx-auto">
         {(saisonCulturelle && saisonCulturelle.length > 0) || (categories && categories.length > 0) ? (
           <div className="flex flex-wrap gap-2 mb-6">
             {saisonCulturelle?.map((saison) => (
               <span
                 key={saison.id}
-                className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-secondary/20 text-secondary"
+                className="inline-flex items-center px-3 py-1 text-xs font-medium bg-secondary/20 text-secondary"
               >
                 {decodeHtmlEntities(saison.name)}
               </span>
@@ -120,27 +120,16 @@ export default async function EventDetailPage({ params }: Props) {
             {categories?.map((cat) => (
               <span
                 key={cat.id}
-                className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary/20 text-primary"
+                className="inline-flex items-center px-3 py-1 text-xs font-medium bg-primary/20 text-primary"
               >
                 {decodeHtmlEntities(cat.name)}
               </span>
             ))}
           </div>
         ) : null}
-
-        {/* Event Info Cards */}
-        <div className="grid md:grid-cols-2 gap-4">
-          {/* Date Card */}
-          <SiteCard variant="primary" hideImage>
+        <SiteCardGrid columns={2}>
+          <SiteCard variant="primary" hideImage hideCorners>
             <div className="flex items-start gap-4">
-              <div
-                className="flex-shrink-0 w-12 h-12 rounded-full"
-                style={{
-                  background: "radial-gradient(circle at 30% 30%, hsl(var(--chart-1)), hsl(var(--chart-1) / 0.7))",
-                  boxShadow:
-                    "0 4px 15px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.1), inset 0 -2px 10px rgba(0,0,0,0.1)",
-                }}
-              />
               <div className="flex-1">
                 <h3 className="font-medium mb-2">{isPonctuel ? "Date de l'événement" : "Événement récurrent"}</h3>
                 {isPonctuel ? (
@@ -163,18 +152,8 @@ export default async function EventDetailPage({ params }: Props) {
               </div>
             </div>
           </SiteCard>
-
-          {/* Time Card */}
-          <SiteCard variant="secondary" hideImage>
+          <SiteCard variant="secondary" hideImage hideCorners>
             <div className="flex items-start gap-4">
-              <div
-                className="flex-shrink-0 w-12 h-12 rounded-full"
-                style={{
-                  background: "radial-gradient(circle at 30% 30%, hsl(var(--chart-3)), hsl(var(--chart-3) / 0.7))",
-                  boxShadow:
-                    "0 4px 15px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.1), inset 0 -2px 10px rgba(0,0,0,0.1)",
-                }}
-              />
               <div className="flex-1">
                 <h3 className="font-medium mb-2">Horaires</h3>
                 {isPonctuel ? (
@@ -197,11 +176,12 @@ export default async function EventDetailPage({ params }: Props) {
               </div>
             </div>
           </SiteCard>
-        </div>
+          {/* Ajoute ici d'autres SiteCard pour d'autres infos si besoin */}
+        </SiteCardGrid>
       </div>
 
       {/* Content */}
-      <div className="px-3 md:px-6 py-12 max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         {/* Gallery */}
         {event.acf?.images && event.acf.images.length > 0 && (
           <div className="mb-12">
@@ -222,12 +202,19 @@ export default async function EventDetailPage({ params }: Props) {
 
         {/* Description */}
         {event.acf?.descriptif && (
-          <div className="mb-12">
-            <h2 className="text-2xl font-light mb-6">À propos</h2>
-            <div
-              className="prose prose-lg max-w-none text-muted-foreground leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: decodeHtmlEntities(event.acf.descriptif) }}
-            />
+          <div className="mb-12 max-w-4xl mx-auto">
+            <SiteCard
+              variant="primary"
+              hideImage
+              className="w-full border-l border-r border-b border-black/20 dark:border-white/20 rounded-none"
+              hideCorners
+            >
+              <h2 className="text-2xl font-light mb-6">À propos</h2>
+              <div
+                className="prose prose-lg max-w-none text-muted-foreground leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: decodeHtmlEntities(event.acf.descriptif) }}
+              />
+            </SiteCard>
           </div>
         )}
 
