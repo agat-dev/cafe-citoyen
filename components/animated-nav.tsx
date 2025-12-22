@@ -3,6 +3,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { Icon } from "./evervault-card"
 import { cn } from "@/lib/utils"
 
 type NavLink = {
@@ -70,7 +71,7 @@ export function AnimatedNav({
     <div className={cn("w-full", className)}>
       <nav
         className={cn(
-          "fixed top-0 left-0 right-0 z-[100] transition-all duration-300 min-h-10 backdrop-blur-md",
+          "fixed top-0 left-0 right-0 z-[100] transition-all duration-300 min-h-10 backdrop-blur-md bg-white/30",
           baseColor,
         )}
       >
@@ -80,23 +81,24 @@ export function AnimatedNav({
             <button
               onClick={toggleMenu}
               className={cn(
-                "flex flex-col gap-1.5 p-2 transition-transform hover:scale-110 relative z-[110]",
-                isExpanded && "gap-0",
+                "flex flex-col justify-center p-2 transition-transform hover:scale-110 relative z-[110]",
               )}
               aria-label={isExpanded ? "Fermer le menu" : "Ouvrir le menu"}
-              style={{ color: menuColor }}
+              style={{ color: menuColor, height: '40px', width: '40px' }}
             >
               <span
                 className={cn(
-                  "block h-0.5 w-6 bg-current transition-all duration-300",
-                  isExpanded && "rotate-45 translate-y-0.5",
+                  "block h-0.5 w-6 bg-current transition-all duration-300 absolute left-2 top-1/2",
+                  isExpanded ? "rotate-45" : "-translate-y-2"
                 )}
+                style={{ position: 'absolute' }}
               />
               <span
                 className={cn(
-                  "block h-0.5 w-6 bg-current transition-all duration-300",
-                  isExpanded && "-rotate-45 -translate-y-0.5",
+                  "block h-0.5 w-6 bg-current transition-all duration-300 absolute left-2 top-1/2",
+                  isExpanded ? "-rotate-45" : "translate-y-2"
                 )}
+                style={{ position: 'absolute' }}
               />
             </button>
 
@@ -124,164 +126,24 @@ export function AnimatedNav({
         >
           {/* Gradient overlay - more opaque at bottom */}
           <div className="relative backdrop-blur-md">
-            {/* Decorative balls in background */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-              {/* Ball 1 - Large Coral - Top left, partially visible */}
-              <div
-                className="absolute w-40 h-40 rounded-full"
-                style={{
-                  background: "radial-gradient(circle at 30% 30%, hsl(25 60% 70%), hsl(25 60% 70% / 0.7))",
-                  boxShadow:
-                    "0 4px 15px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.05), inset 0 -2px 10px rgba(0,0,0,0.05)",
-                  top: "-5%",
-                  left: "8%",
-                  opacity: 0.65,
-                }}
-              />
-              {/* Ball 2 - Small Blue - Top center between cards */}
-              <div
-                className="absolute w-16 h-16 rounded-full"
-                style={{
-                  background: "radial-gradient(circle at 30% 30%, hsl(240 60% 55%), hsl(240 60% 55% / 0.7))",
-                  boxShadow:
-                    "0 4px 15px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.05), inset 0 -2px 10px rgba(0,0,0,0.05)",
-                  top: "12%",
-                  left: "42%",
-                  opacity: 0.85,
-                }}
-              />
-              {/* Ball 3 - Medium Yellow - Top right, mostly visible */}
-              <div
-                className="absolute w-32 h-32 rounded-full"
-                style={{
-                  background: "radial-gradient(circle at 30% 30%, hsl(90 60% 85%), hsl(90 60% 85% / 0.7))",
-                  boxShadow:
-                    "0 4px 15px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.05), inset 0 -2px 10px rgba(0,0,0,0.05)",
-                  top: "8%",
-                  right: "12%",
-                  opacity: 0.9,
-                }}
-              />
-              {/* Ball 4 - Tiny Purple - Near top, subtle through card */}
-              <div
-                className="absolute w-12 h-12 rounded-full"
-                style={{
-                  background: "radial-gradient(circle at 30% 30%, hsl(300 60% 75%), hsl(300 60% 75% / 0.7))",
-                  boxShadow:
-                    "0 4px 15px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.05), inset 0 -2px 10px rgba(0,0,0,0.05)",
-                  top: "22%",
-                  left: "28%",
-                  opacity: 0.55,
-                }}
-              />
-              {/* Ball 5 - Large Green - Middle left, very subtle through card */}
-              <div
-                className="absolute w-36 h-36 rounded-full z-20"
-                style={{
-                  background: "radial-gradient(circle at 30% 30%, hsl(150 60% 65%), hsl(150 60% 65% / 0.7))",
-                  boxShadow:
-                    "0 4px 15px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.05), inset 0 -2px 10px rgba(0,0,0,0.05)",
-                  top: "35%",
-                  left: "5%",
-                  opacity: 0.6,
-                }}
-              />
-              {/* Ball 6 - Medium Blue - Center, visible in gutter */}
-              <div
-                className="absolute w-28 h-28 rounded-full z-20"
-                style={{
-                  background: "radial-gradient(circle at 30% 30%, hsl(240 60% 55%), hsl(240 60% 55% / 0.7))",
-                  boxShadow:
-                    "0 4px 15px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.05), inset 0 -2px 10px rgba(0,0,0,0.05)",
-                  top: "42%",
-                  left: "48%",
-                  opacity: 0.88,
-                }}
-              />
-              {/* Ball 7 - Small Coral - Center right gutter */}
-              <div
-                className="absolute w-20 h-20 rounded-full"
-                style={{
-                  background: "radial-gradient(circle at 30% 30%, hsl(25 60% 70%), hsl(25 60% 70% / 0.7))",
-                  boxShadow:
-                    "0 4px 15px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.05), inset 0 -2px 10px rgba(0,0,0,0.05)",
-                  top: "38%",
-                  right: "20%",
-                  opacity: 0.8,
-                }}
-              />
-              {/* Ball 8 - Large Purple - Right edge, partially off screen */}
-              <div
-                className="absolute w-44 h-44 rounded-full z-20"
-                style={{
-                  background: "radial-gradient(circle at 30% 30%, hsl(300 60% 75%), hsl(300 60% 75% / 0.7))",
-                  boxShadow:
-                    "0 4px 15px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.05), inset 0 -2px 10px rgba(0,0,0,0.05)",
-                  top: "48%",
-                  right: "-8%",
-                  opacity: 0.7,
-                }}
-              />
-              {/* Ball 9 - Tiny Green - Bottom left gutter */}
-              <div
-                className="absolute w-14 h-14 rounded-full"
-                style={{
-                  background: "radial-gradient(circle at 30% 30%, hsl(150 60% 65%), hsl(150 60% 65% / 0.7))",
-                  boxShadow:
-                    "0 4px 15px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.05), inset 0 -2px 10px rgba(0,0,0,0.05)",
-                  bottom: "28%",
-                  left: "33%",
-                  opacity: 0.85,
-                }}
-              />
-              {/* Ball 10 - Medium Yellow - Bottom center, subtle through card */}
-              <div
-                className="absolute w-26 h-26 rounded-full"
-                style={{
-                  background: "radial-gradient(circle at 30% 30%, hsl(90 60% 85%), hsl(90 60% 85% / 0.7))",
-                  boxShadow:
-                    "0 4px 15px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.05), inset 0 -2px 10px rgba(0,0,0,0.05)",
-                  bottom: "18%",
-                  left: "55%",
-                  opacity: 0.6,
-                }}
-              />
-              {/* Ball 11 - Small Blue - Bottom right gutter */}
-              <div
-                className="absolute w-18 h-18 rounded-full"
-                style={{
-                  background: "radial-gradient(circle at 30% 30%, hsl(240 60% 55%), hsl(240 60% 55% / 0.7))",
-                  boxShadow:
-                    "0 4px 15px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.05), inset 0 -2px 10px rgba(0,0,0,0.05)",
-                  bottom: "25%",
-                  right: "15%",
-                  opacity: 0.8,
-                }}
-              />
-              {/* Ball 12 - Large Coral - Bottom, mostly off screen, very subtle */}
-              <div
-                className="absolute w-48 h-48 rounded-full z-20"
-                style={{
-                  background: "radial-gradient(circle at 30% 30%, hsl(25 60% 70%), hsl(25 60% 70% / 0.7))",
-                  boxShadow:
-                    "0 4px 15px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.05), inset 0 -2px 10px rgba(0,0,0,0.05)",
-                  bottom: "-10%",
-                  left: "22%",
-                  opacity: 0.55,
-                }}
-              />
-            </div>
 
             {/* Matching megamenu container background with menu bar */}
             <div className="container mx-auto px-4 lg:px-8 py-4 max-w-full overflow-x-hidden max-h-[calc(100vh-2.5rem)] lg:overflow-visible relative z-10">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border border-gray-200/30 rounded-xl overflow-hidden bg-white/95">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border border-gray-200/80 bg-white/95 relative overflow-visible">
+                {/* Icônes d'angle pour la grille du megamenu */}
+                <Icon className="absolute h-6 w-6 -top-3 -left-3 dark:text-white text-black z-[5]" />
+                <Icon className="absolute h-6 w-6 -top-3 -right-3 dark:text-white text-black z-[5]" />
+                <Icon className="absolute h-6 w-6 -bottom-3 -left-3 dark:text-white text-black z-[5]" />
+                <Icon className="absolute h-6 w-6 -bottom-3 -right-3 dark:text-white text-black z-[5]" />
                 {(items || []).map((item, idx) => (
                   <div
                     key={`${item.label}-${idx}`}
                     className={cn(
-                      "flex flex-col transition-all duration-500 ease-out relative bg-white",
-                      "border-r border-b border-gray-200/30 last:border-r-0",
-                      "md:nth-[2n]:border-r-0 lg:nth-[2n]:border-r lg:nth-[3n]:border-r-0",
+                      "flex flex-col transition-all duration-500 ease-out relative bg-white border-r border-b border-gray-200/80",
+                      // Supprime la bordure droite sur la dernière colonne
+                      (idx % 3 === 2) && "border-r-0",
+                      // Supprime la bordure basse sur la dernière ligne
+                      (idx >= items.length - (items.length % 3 || 3)) && "border-b-0",
                       "lg:min-h-[180px]",
                       expandedCardIndex === idx ? "min-h-[180px]" : "min-h-[60px] lg:min-h-[180px]",
                       isExpanded ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0",

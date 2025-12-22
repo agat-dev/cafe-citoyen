@@ -11,8 +11,9 @@ export function Icon({ className = "" }: { className?: string }) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
+      {/* Croix pleine, traits qui se touchent */}
       <path
-        d="M12 2v2M12 20v2M2 12h2M20 12h2"
+        d="M4 12h16M12 4v16"
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
