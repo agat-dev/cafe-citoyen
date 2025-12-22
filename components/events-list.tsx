@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback, memo } from "react"
 import { EventsFilters } from "./events-filters"
-import { SiteCard } from "./ui/site-card"
+import { SiteCard, SiteCardGrid } from "./ui/site-card"
 import { getCategoryVariant } from "@/lib/category-colors"
 import { PageHeader } from "./page-header"
 
@@ -230,26 +230,45 @@ export const EventsList = memo(function EventsList({
               <p className="text-lg text-muted-foreground">Aucun événement trouvé avec ces critères</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredAndSortedEvents.map((event) => {
-                const isPonctuel = event.acf?.recurrent_ou_ponctuel
+            <SiteCardGrid columns={3}>
+              {filteredAndSortedEvents.map((event, idx) => {
+                const isPonctuel = event.acf?.recurrent_ou_ponctuel;
                 const dateDebut = event.acf?.date_de_debut
                   ? parseFrenchDate(event.acf.date_de_debut)
-                  : new Date(event.date)
-                const dateFin = event.acf?.date_de_fin ? parseFrenchDate(event.acf.date_de_fin) : null
+                  : new Date(event.date);
+                const dateFin = event.acf?.date_de_fin ? parseFrenchDate(event.acf.date_de_fin) : null;
 
                 const saisonCulturelle = event._embedded?.["wp:term"]
                   ?.flat()
-                  .filter((term) => term.taxonomy === "saison-culturelle")
+                  .filter((term) => term.taxonomy === "saison-culturelle");
 
-                const category = event._embedded?.["wp:term"]?.flat().find((term) => term.taxonomy === "category")
+                const category = event._embedded?.["wp:term"]?.flat().find((term) => term.taxonomy === "category");
 
-                const categoryName = category ? decodeHtmlEntities(category.name) : undefined
-                const variant = getCategoryVariant(categoryName)
+                const categoryName = category ? decodeHtmlEntities(category.name) : undefined;
+                const variant = getCategoryVariant(categoryName);
 
-                const featuredImage = event._embedded?.["wp:featuredmedia"]?.[0]?.source_url
-                const firstGalleryImage = event.acf?.images?.[0]?.url
+                const featuredImage = event._embedded?.["wp:featuredmedia"]?.[0]?.source_url;
+                const firstGalleryImage = event.acf?.images?.[0]?.url;
 
+                // 3 colonnes : idx % 3 === 0 => gauche, idx % 3 === 2 => droite, sinon milieu
+                // Ajoute une icône en bas à droite à la dernière carte de chaque ligne complète (3 cartes)
+                const col = idx % 3;
+                const row = Math.floor(idx / 3);
+                const total = filteredAndSortedEvents.length;
+                const isLastCard = idx === total - 1;
+                const isEndOfFullRow = col === 2 && !isLastCard;
+                // Vérifie si la dernière ligne est complète
+                const isLastRow = row === Math.floor((total - 1) / 3);
+                const isLastRowFull = total % 3 === 0;
+                // Empêche la superposition d'icônes d'angle :
+                // Coin haut gauche : première carte uniquement (bordure haut/gauche)
+                const showTopLeftCorner = idx === 0;
+                // Coin haut droite : première ligne, dernière colonne d'une ligne complète (bordure haut/droite)
+                const showTopRightCorner = row === 0 && col === 2 && (idx + 1) % 3 === 0;
+                // Coin bas gauche : première colonne, dernière ligne complète (bordure bas/gauche)
+                const showBottomLeftCorner = col === 0 && isLastRow && isLastRowFull;
+                // Coin bas droite : jamais (on ne veut pas d'icône en bas à droite de la grille)
+                const showBottomRightCorner = false;
                 return (
                   <SiteCard
                     key={event.id}
@@ -266,10 +285,15 @@ export const EventsList = memo(function EventsList({
                     href={`/evenement/${event.slug}`}
                     category={categoryName}
                     date={isPonctuel ? event.acf?.date_de_debut : event.acf?.jour}
+                    hideCorners={!(isLastCard || (isEndOfFullRow && (!isLastRow || isLastRowFull)))}
+                    showTopLeftCorner={false}
+                    showTopRightCorner={false}
+                    showBottomLeftCorner={false}
+                    showBottomRightCorner={isLastCard || (isEndOfFullRow && (!isLastRow || isLastRowFull))}
                   />
-                )
+                );
               })}
-            </div>
+            </SiteCardGrid>
           )}
 
           {/* CTA Section */}

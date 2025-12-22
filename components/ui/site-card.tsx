@@ -1,6 +1,8 @@
+"use client"
 import type React from "react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import { EvervaultCard, Icon } from "./evervault-card"
 
 interface SiteCardProps {
   title: string
@@ -15,6 +17,12 @@ interface SiteCardProps {
   children?: React.ReactNode
   inMegamenu?: boolean
   hideImage?: boolean // Added prop to hide image container
+  hideCorners?: boolean // Ajout pour masquer les icônes d'angle
+  hideLeftCorners?: boolean // Pour masquer les icônes de coin gauche
+  showTopLeftCorner?: boolean
+  showTopRightCorner?: boolean
+  showBottomLeftCorner?: boolean
+  showBottomRightCorner?: boolean
 }
 
 const variantColors = {
@@ -56,6 +64,11 @@ const variantColors = {
 }
 
 export function SiteCard({
+  hideLeftCorners = false,
+  showTopLeftCorner = true,
+  showTopRightCorner = true,
+  showBottomLeftCorner = true,
+  showBottomRightCorner = true,
   title,
   description,
   image,
@@ -67,60 +80,101 @@ export function SiteCard({
   className,
   children,
   inMegamenu = false,
-  hideImage = false, // Added hideImage param
-}: SiteCardProps) {
-  const colors = variantColors[variant]
+  hideImage = false, // Added prop to hide image container
+  forceImageCover = false,
+  noPadding = false,
+  hideCorners = false,
+}: SiteCardProps & { forceImageCover?: boolean; noPadding?: boolean; hideCorners?: boolean }) {
+  const corners = [
+    { show: showTopLeftCorner, className: "-top-3 -left-3" },
+    { show: showBottomLeftCorner, className: "-bottom-3 -left-3" },
+    { show: showTopRightCorner, className: "-top-3 -right-3" },
+    { show: showBottomRightCorner, className: "-bottom-3 -right-3" },
+  ];
+  const isOnlyImage =
+    !title && !description && !children && !category && !date && !href && !forceImageCover && !noPadding;
+
+  if (!hideImage && isOnlyImage) {
+    // Cas image seule, pas de div
+    return image ? (
+      <img
+        src={image || "/placeholder.svg"}
+        alt={imageAlt || title}
+        className="w-full h-full object-cover"
+        style={{ width: '100%', height: '100%', objectFit: 'cover', maxHeight: '260px' }}
+        loading="lazy"
+      />
+    ) : (
+      <EvervaultCard text={title ? title.substring(0, 2).toUpperCase() : ""} />
+    );
+  }
 
   const CardContent = (
     <div
       className={cn(
-        "relative flex w-full flex-col rounded-3xl bg-white text-gray-700 shadow-sm",
-        "transition-all duration-300 hover:shadow-md",
-        "group",
+        "relative flex flex-col h-full w-full",
+        (noPadding || forceImageCover) ? "p-0" : "p-4",
+        "border-r border-b border-black/[0.2] dark:border-white/[0.2]",
+        "bg-white dark:bg-black text-gray-700 dark:text-gray-300",
+        "transition-all duration-300",
+        "group/card",
         className,
       )}
     >
+      {/* Corner Icons */}
+      {!hideCorners && corners.map((corner, i) =>
+        corner.show ? (
+          <Icon
+            key={i}
+            className={cn(
+              "absolute h-6 w-6 dark:text-white text-black z-[5]",
+              corner.className
+            )}
+          />
+        ) : null
+      )}
+
       {!hideImage && (
         <div
           className={cn(
-            "relative mx-4 -mt-6 aspect-square overflow-hidden rounded-3xl bg-clip-border text-white shadow-sm",
-            "transition-transform duration-500 ease-out group-hover:-translate-y-2",
-            !image && "bg-gradient-to-r",
-            !image && colors.gradient,
-            image && "shadow-gray-500/40",
+            "w-full h-full aspect-[4/3] rounded-none overflow-hidden p-0 m-0"
           )}
+          style={{ width: '100%', height: '100%', maxHeight: '260px' }}
         >
           {image ? (
             <img
               src={image || "/placeholder.svg"}
               alt={imageAlt || title}
               className="w-full h-full object-cover"
+              style={{ width: '100%', height: '100%', objectFit: 'cover', maxHeight: '260px' }}
               loading="lazy"
             />
           ) : (
-            <div className={cn("w-full h-full bg-gradient-to-r", colors.gradient)} />
+            <EvervaultCard text={title ? title.substring(0, 2).toUpperCase() : ""} />
           )}
         </div>
       )}
 
       {/* Card Content */}
-      <div className="p-6">
+      <div className="w-full">
         {/* Category/Date Badge */}
         {(category || date) && (
           <div className="flex items-center gap-2 mb-2">
             {category && (
-              <span className={cn("inline-flex items-center px-2 py-1 rounded-full text-xs font-medium", colors.badge)}>
+              <span className={cn(
+                "text-sm border font-light dark:border-white/[0.2] border-black/[0.2] rounded-full px-2 py-0.5",
+                "text-black dark:text-white"
+              )}>
                 {category}
               </span>
             )}
-            {date && <span className="text-xs text-gray-500 font-medium">{date}</span>}
+            {date && <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">{date}</span>}
           </div>
         )}
-
         {/* Title */}
         <h5
           className={cn(
-            "block font-serif text-xl font-bold leading-snug tracking-normal text-blue-gray-900 antialiased line-clamp-2",
+            "dark:text-white text-black text-3xl md:text-5xl font-bold leading-snug tracking-normal antialiased line-clamp-2",
             inMegamenu ? "mb-4" : "mb-2",
           )}
         >
@@ -129,7 +183,7 @@ export function SiteCard({
 
         {/* Description */}
         {description && (
-          <p className="block font-sans text-base font-light leading-relaxed text-inherit antialiased line-clamp-3">
+          <p className="dark:text-white text-black text-lg md:text-2xl font-light leading-relaxed antialiased line-clamp-3">
             {description}
           </p>
         )}
@@ -140,28 +194,61 @@ export function SiteCard({
 
       {/* Read More Button */}
       {href && (
-        <div className="p-6 pt-0">
-          <button
-            type="button"
+        <div className="mt-4">
+          <span
             className={cn(
-              "select-none rounded-full py-3 px-6 text-center align-middle font-sans text-xs font-bold uppercase text-white shadow-sm transition-all hover:shadow-md focus:opacity-85 focus:shadow-none active:opacity-85 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none",
-              colors.button,
+              "text-sm border font-light dark:border-white/[0.2] border-black/[0.2] rounded-full px-2 py-0.5",
+              "text-black dark:text-white inline-block"
             )}
           >
             Lire plus
-          </button>
+          </span>
         </div>
       )}
     </div>
-  )
+  );
 
   if (href) {
     return (
-      <Link href={href} className="block">
+      <Link href={href} className="block h-full">
         {CardContent}
       </Link>
-    )
+    );
   }
 
-  return CardContent
+  return <div className="h-full">{CardContent}</div>;
+}
+
+// Wrapper pour créer une grille sans gouttières avec bordures partagées
+interface SiteCardGridProps {
+  children: React.ReactNode
+  columns?: 1 | 2 | 3 | 4
+  className?: string
+}
+
+export function SiteCardGrid({ children, columns = 3, className }: SiteCardGridProps) {
+  const gridCols = {
+    1: "grid-cols-1",
+    2: "grid-cols-1 md:grid-cols-2",
+    3: "grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
+    4: "grid-cols-1 md:grid-cols-2 lg:grid-cols-4",
+  }
+
+  return (
+    <div className={cn("relative", className)}>
+      {/* Corner Icons pour la grille entière (sauf en bas à droite) */}
+      <Icon className="absolute h-6 w-6 -top-3 -left-3 dark:text-white text-black z-10" />
+      <Icon className="absolute h-6 w-6 -bottom-3 -left-3 dark:text-white text-black z-10" />
+      <Icon className="absolute h-6 w-6 -top-3 -right-3 dark:text-white text-black z-10" />
+      {/* Pas d'icône en bas à droite */}
+      <div
+        className={cn(
+          "grid border-l border-t border-black/[0.2] dark:border-white/[0.2]",
+          gridCols[columns],
+        )}
+      >
+        {children}
+      </div>
+    </div>
+  )
 }

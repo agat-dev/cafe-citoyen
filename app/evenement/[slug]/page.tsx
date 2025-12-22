@@ -93,12 +93,16 @@ export default async function EventDetailPage({ params }: Props) {
         </Link>
       </div>
 
-      <PageHeader
-        title={event.title.rendered}
-        subtitle={event.acf?.["sous-titre"]}
-        backgroundImage={event.acf?.background?.url || featuredImage}
-        backgroundAlt={event.acf?.background?.alt || event.title.rendered}
-      />
+
+      <div className="max-w-3xl mx-auto mb-8">
+        <SiteCard
+          title={decodeHtmlEntities(event.title.rendered)}
+          description={event.acf?.["sous-titre"]}
+          image={event.acf?.background?.url || featuredImage}
+          imageAlt={event.acf?.background?.alt || event.title.rendered}
+          variant="primary"
+        />
+      </div>
 
       {/* Event Meta Information - Right after PageHeader */}
       <div className="px-3 md:px-6 pb-8 max-w-4xl mx-auto">

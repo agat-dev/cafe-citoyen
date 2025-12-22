@@ -231,3 +231,13 @@
     height: 30px;
   }
 }
+
+@layer components {
+  button, .btn, .cta, .dropdown, select {
+    border-width: 1px !important;
+    border-color: #e5e7eb !important; /* gris clair (tailwind gray-200) */
+    border-radius: 0 !important;
+    background-clip: padding-box;
+    box-shadow: none !important;
+  }
+}
