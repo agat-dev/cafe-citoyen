@@ -6,16 +6,17 @@ import {
   getWordPressEvents,
   getWordPressPages,
   getTeamMembers,
-  getWordPressPosts, // Added posts import
-  getPartners, // Added getPartners import
+  getWordPressPosts,
+  getPartners,
 } from "@/lib/wordpress-api"
 import Link from "next/link"
+import Image from "next/image"
 import { EventsList } from "@/components/events-list"
 import { PageHeader } from "@/components/page-header"
-import { TeamMembers } from "@/components/team-members" // Added team members component
-import { PostsList } from "@/components/posts-list" // Added posts list component
+import { TeamMembers } from "@/components/team-members"
+import { PostsList } from "@/components/posts-list"
 import { PartnersList } from "@/components/partners-list"
-import { PageContent } from "@/components/page-content" // Added PageContent component import
+import { PageContent } from "@/components/page-content"
 
 const CalendarIcon = ({ className }: { className?: string }) => (
   <svg
@@ -75,7 +76,7 @@ export async function generateStaticParams() {
 }
 
 export const dynamicParams = false
-export const revalidate = 3600 // Added ISR with 1 hour revalidation
+export const revalidate = 3600 // Increased ISR revalidation to 1 hour for better performance
 
 function getEventStatus(event: any): "upcoming" | "ongoing" | "past" {
   const today = new Date()
@@ -271,15 +272,16 @@ export default async function WordPressPage({ params }: { params: Promise<{ slug
     return <AgendaPageContent />
   }
 
-  const page = await getWordPressPageBySlug(slug)
+  const [page, childPages, events] = await Promise.all([
+    getWordPressPageBySlug(slug),
+    getWordPressPageBySlug(slug).then((p) => (p ? getChildPages(p.id) : [])),
+    getEventsByPageSlug(slug),
+  ])
 
   if (!page) {
     notFound()
     return null
   }
-
-  const childPages = await getChildPages(page.id)
-  const events = await getEventsByPageSlug(slug)
 
   if (slug === "actualites") {
     const allPosts = await getWordPressPosts()
@@ -410,7 +412,7 @@ export default async function WordPressPage({ params }: { params: Promise<{ slug
                 <Link
                   key={childPage.id}
                   href={`/${childPage.slug}`}
-                  className="group bg-card rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-border"
+                  className="group bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 p-6 border border-border"
                 >
                   <h3 className="text-xl font-semibold mb-2 text-foreground group-hover:text-primary transition-colors flex items-center gap-2">
                     {decodeHtmlEntities(childPage.title.rendered)}
@@ -440,16 +442,16 @@ export default async function WordPressPage({ params }: { params: Promise<{ slug
                   <Link
                     key={event.id}
                     href={`/evenement/${event.slug}`}
-                    className="group bg-card rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300"
+                    className="group bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
                   >
                     <div className="relative h-48 overflow-hidden">
                       {featuredImage ? (
-                        <img
+                        <Image
                           src={featuredImage || "/placeholder.svg"}
                           alt={event.title.rendered}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          loading="lazy"
-                          decoding="async"
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">

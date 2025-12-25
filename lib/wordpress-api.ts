@@ -242,7 +242,7 @@ function decodeHtmlEntities(text: string): string {
 }
 
 const cache = new Map<string, { data: any; timestamp: number }>()
-const CACHE_DURATION = 300000 // 5 minutes (increased from 60 seconds)
+const CACHE_DURATION = 3600000 // 1 hour (increased from 5 minutes)
 
 function getCached<T>(key: string): T | null {
   const cached = cache.get(key)
@@ -261,7 +261,9 @@ function measureTime(label: string) {
   const start = Date.now()
   return () => {
     const duration = Date.now() - start
-    console.log(`[v0 PERF] ${label}: ${duration}ms`)
+    if (process.env.NODE_ENV === "development") {
+      console.log(`[v0 PERF] ${label}: ${duration}ms`)
+    }
   }
 }
 
@@ -270,37 +272,28 @@ export async function getWordPressPages(): Promise<WordPressPage[]> {
 
   const cached = getCached<WordPressPage[]>("pages")
   if (cached) {
-    console.log("[v0 PERF] Cache HIT: pages")
     endMeasure()
     return cached
   }
 
-  console.log("[v0 PERF] Cache MISS: pages")
-
   try {
-    const fetchStart = Date.now()
     const response = await fetch(
       `${WORDPRESS_URL}/wp-json/wp/v2/pages?per_page=100&_fields=id,title,link,parent,slug,menu_order`,
       {
         headers: {
           "Accept-Charset": "utf-8",
         },
-        next: { revalidate: 60 },
+        next: { revalidate: 3600 },
       },
     )
-    console.log(`[v0 PERF] Fetch pages API: ${Date.now() - fetchStart}ms`)
 
     if (!response.ok) {
-      const errorText = await response.text()
-      console.log("[v0] WordPress API error:", response.status, errorText.substring(0, 100))
       endMeasure()
       return []
     }
 
     const contentType = response.headers.get("content-type")
     if (!contentType || !contentType.includes("application/json")) {
-      const text = await response.text()
-      console.log("[v0] Non-JSON response from WordPress API:", text.substring(0, 200))
       endMeasure()
       return []
     }
@@ -318,28 +311,30 @@ export async function getWordPressPages(): Promise<WordPressPage[]> {
 
 async function fetchPartnerByUrl(url: string): Promise<{ id: number; title: string; link: string } | null> {
   try {
-    // Extract slug from URL
     const urlParts = url.split("/")
     const slug = urlParts[urlParts.length - 2] || urlParts[urlParts.length - 1]
+
+    const cached = getCached<{ id: number; title: string; link: string }>(`partner-${slug}`)
+    if (cached) return cached
 
     const response = await fetch(`${WORDPRESS_URL}/wp-json/wp/v2/partenaire?slug=${slug}&_fields=id,title,link`, {
       headers: {
         "Accept-Charset": "utf-8",
       },
-      next: { revalidate: 60 },
+      next: { revalidate: 3600 },
     })
 
-    if (!response.ok) {
-      return null
-    }
+    if (!response.ok) return null
 
     const partners = await response.json()
     if (partners.length > 0) {
-      return {
+      const result = {
         id: partners[0].id,
         title: decodeHtmlEntities(partners[0].title.rendered),
         link: partners[0].link,
       }
+      setCache(`partner-${slug}`, result)
+      return result
     }
     return null
   } catch (error) {
@@ -353,25 +348,19 @@ export async function getWordPressEvents(): Promise<WordPressEvent[]> {
 
   const cached = getCached<WordPressEvent[]>("events")
   if (cached) {
-    console.log("[v0 PERF] Cache HIT: events")
     endMeasure()
     return cached
   }
 
-  console.log("[v0 PERF] Cache MISS: events")
-
   try {
-    const fetchStart = Date.now()
     const response = await fetch(`${WORDPRESS_URL}/wp-json/wp/v2/evenement?per_page=100&_embed&acf_format=standard`, {
       headers: {
         "Accept-Charset": "utf-8",
       },
-      next: { revalidate: 60 },
+      next: { revalidate: 3600 },
     })
-    console.log(`[v0 PERF] Fetch events API: ${Date.now() - fetchStart}ms`)
 
     if (!response.ok) {
-      console.log("[v0] WordPress Events API error:", response.status)
       endMeasure()
       return []
     }
@@ -382,12 +371,10 @@ export async function getWordPressEvents(): Promise<WordPressEvent[]> {
       events = JSON.parse(text)
     } catch (parseError) {
       console.error("[v0] Error parsing events JSON:", parseError)
-      console.log("[v0] Response text:", text.substring(0, 200)) // Log first 200 chars
       endMeasure()
       return []
     }
 
-    const partnerStart = Date.now()
     const eventsWithPartners = await Promise.all(
       events.map(async (event: WordPressEvent) => {
         if (event.acf?.partenaires_associes && event.acf.partenaires_associes.length > 0) {
@@ -403,7 +390,6 @@ export async function getWordPressEvents(): Promise<WordPressEvent[]> {
         return event
       }),
     )
-    console.log(`[v0 PERF] Fetch all partners for events: ${Date.now() - partnerStart}ms`)
 
     setCache("events", eventsWithPartners)
     endMeasure()
@@ -416,24 +402,23 @@ export async function getWordPressEvents(): Promise<WordPressEvent[]> {
 }
 
 export async function getWordPressEventBySlug(slug: string): Promise<WordPressEvent | null> {
+  const cached = getCached<WordPressEvent>(`event-${slug}`)
+  if (cached) return cached
+
   try {
     const response = await fetch(`${WORDPRESS_URL}/wp-json/wp/v2/evenement?slug=${slug}&_embed&acf_format=standard`, {
       headers: {
         "Accept-Charset": "utf-8",
       },
-      next: { revalidate: 60 },
+      next: { revalidate: 3600 },
     })
 
-    if (!response.ok) {
-      console.log("[v0] WordPress event API error:", response.status)
-      return null
-    }
+    if (!response.ok) return null
 
     const events = await response.json()
     if (events.length > 0) {
       const event = events[0]
 
-      // Fetch partner details if available
       if (event.acf?.partenaires_associes && event.acf.partenaires_associes.length > 0) {
         const partnersDetails = await Promise.all(
           event.acf.partenaires_associes.map((url: string) => fetchPartnerByUrl(url)),
@@ -445,6 +430,7 @@ export async function getWordPressEventBySlug(slug: string): Promise<WordPressEv
         }>
       }
 
+      setCache(`event-${slug}`, event)
       return event
     }
     return null
@@ -465,6 +451,9 @@ export async function getAllEventSlugs(): Promise<string[]> {
 }
 
 export async function getWordPressPageBySlug(slug: string): Promise<WordPressPage | null> {
+  const cached = getCached<WordPressPage>(`page-${slug}`)
+  if (cached) return cached
+
   try {
     const response = await fetch(
       `${WORDPRESS_URL}/wp-json/wp/v2/pages?slug=${slug}&_fields=id,title,content,link,slug,parent,acf&acf_format=standard`,
@@ -472,17 +461,15 @@ export async function getWordPressPageBySlug(slug: string): Promise<WordPressPag
         headers: {
           "Accept-Charset": "utf-8",
         },
-        next: { revalidate: 60 },
+        next: { revalidate: 3600 },
       },
     )
 
-    if (!response.ok) {
-      console.log("[v0] WordPress page API error:", response.status)
-      return null
-    }
+    if (!response.ok) return null
 
     const pages = await response.json()
     if (pages.length > 0) {
+      setCache(`page-${slug}`, pages[0])
       return pages[0]
     }
     return null
@@ -614,22 +601,17 @@ export async function getEventsByPageSlug(slug: string): Promise<WordPressEvent[
 
 export async function getTeamMembers(): Promise<TeamMember[]> {
   const cached = getCached<TeamMember[]>("team-members")
-  if (cached) {
-    return cached
-  }
+  if (cached) return cached
 
   try {
     const response = await fetch(`${WORDPRESS_URL}/wp-json/wp/v2/membre?per_page=100&_embed&acf_format=standard`, {
       headers: {
         "Accept-Charset": "utf-8",
       },
-      next: { revalidate: 60 },
+      next: { revalidate: 3600 },
     })
 
-    if (!response.ok) {
-      console.log("[v0] WordPress Team Members API error:", response.status)
-      return []
-    }
+    if (!response.ok) return []
 
     const members = await response.json()
     setCache("team-members", members)
@@ -642,22 +624,17 @@ export async function getTeamMembers(): Promise<TeamMember[]> {
 
 export async function getWordPressPosts(): Promise<WordPressPost[]> {
   const cached = getCached<WordPressPost[]>("posts")
-  if (cached) {
-    return cached
-  }
+  if (cached) return cached
 
   try {
     const response = await fetch(`${WORDPRESS_URL}/wp-json/wp/v2/posts?per_page=100&_embed&acf_format=standard`, {
       headers: {
         "Accept-Charset": "utf-8",
       },
-      next: { revalidate: 60 },
+      next: { revalidate: 3600 },
     })
 
-    if (!response.ok) {
-      console.log("[v0] WordPress Posts API error:", response.status)
-      return []
-    }
+    if (!response.ok) return []
 
     const posts = await response.json()
     setCache("posts", posts)
@@ -670,66 +647,46 @@ export async function getWordPressPosts(): Promise<WordPressPost[]> {
 
 export async function getPartners(): Promise<Partner[]> {
   const cached = getCached<Partner[]>("partners")
-  if (cached) {
-    return cached
-  }
+  if (cached) return cached
 
   try {
     const response = await fetch(`${WORDPRESS_URL}/wp-json/wp/v2/partenaire?per_page=100&_embed&acf_format=standard`, {
       headers: {
         "Accept-Charset": "utf-8",
       },
-      next: { revalidate: 60 },
+      next: { revalidate: 3600 },
     })
 
-    if (!response.ok) {
-      console.log("[v0] WordPress Partners API error:", response.status)
-      return []
-    }
+    if (!response.ok) return []
 
     const partners = await response.json()
     setCache("partners", partners)
     return partners
   } catch (error) {
     console.error("[v0] Error fetching partners:", error)
+    return []
   }
-
-  const defaultOptions: Partner[] = []
-  setCache("partners", defaultOptions)
-  return defaultOptions
 }
 
 export async function getSiteOptions(): Promise<SiteOptions | null> {
   const endMeasure = measureTime("getSiteOptions")
-  console.log("[v0] getSiteOptions called")
 
   const cached = getCached<SiteOptions>("site-options")
   if (cached) {
-    console.log("[v0 PERF] Cache HIT: site-options")
-    console.log("[v0] Returning cached site options:", cached)
     endMeasure()
     return cached
   }
 
-  console.log("[v0 PERF] Cache MISS: site-options")
-
   try {
-    const url = `${WORDPRESS_URL}/wp-json/site/v1/reglages`
-    console.log("[v0] Fetching site options from:", url)
-
-    const fetchStart = Date.now()
-    const response = await fetch(url, {
+    const response = await fetch(`${WORDPRESS_URL}/wp-json/site/v1/reglages`, {
       headers: {
         "Accept-Charset": "utf-8",
       },
-      next: { revalidate: 300 },
+      next: { revalidate: 3600 },
     })
-    console.log(`[v0 PERF] Fetch site options API: ${Date.now() - fetchStart}ms`)
 
     if (response.ok) {
       const result = await response.json()
-      console.log("[v0] Site options data received:", JSON.stringify(result, null, 2))
-
       const data = result.data || result
 
       const siteOptions: SiteOptions = {
@@ -738,19 +695,14 @@ export async function getSiteOptions(): Promise<SiteOptions | null> {
         logo_du_site: data.logo_du_site,
       }
 
-      console.log("[v0] Processed site options:", siteOptions)
       setCache("site-options", siteOptions)
       endMeasure()
       return siteOptions
-    } else {
-      const errorText = await response.text()
-      console.log("[v0] Error response:", errorText)
     }
   } catch (error) {
     console.error("[v0] Error fetching site options:", error)
   }
 
-  console.log("[v0] Returning default site options")
   const defaultOptions: SiteOptions = {
     titre_du_site: "Château de Goutelas",
     description_du_site: "Centre culturel de rencontre",
