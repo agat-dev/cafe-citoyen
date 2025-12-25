@@ -35,7 +35,7 @@ export function AnimatedNav({
   logo,
   items,
   className = "",
-  baseColor = "oklch(0.7 0.1 202 / 0%)",
+  baseColor = "white",
   menuColor = "black",
   agendaLink = "/agenda",
 }: AnimatedNavProps) {
