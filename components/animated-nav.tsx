@@ -130,7 +130,7 @@ export function AnimatedNav({
             isExpanded ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0",
           )}
         >
-          <div className="relative backdrop-blur-md">
+          <div className="relative backdrop-blur-md bg-white">
             <div className="container mx-auto px-4 lg:px-8 py-4 max-w-full overflow-x-hidden max-h-[calc(100vh-2.5rem)] lg:overflow-visible relative z-10">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border border-gray-200/80 bg-white/95 relative overflow-visible">
                 {/* Corner icons */}
