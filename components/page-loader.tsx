@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { usePathname } from "next/navigation"
 import Image from "next/image"
 
 interface PageLoaderProps {
@@ -10,14 +11,17 @@ interface PageLoaderProps {
 
 export function PageLoader({ logoUrl, logoAlt = "Logo" }: PageLoaderProps) {
   const [isLoading, setIsLoading] = useState(true)
+  const pathname = usePathname()
 
   useEffect(() => {
+    setIsLoading(true)
+
     const timer = setTimeout(() => {
       setIsLoading(false)
-    }, 1500) // Animation de 1.5 secondes
+    }, 1500)
 
     return () => clearTimeout(timer)
-  }, [])
+  }, [pathname]) // Déclencher l'effet à chaque changement de pathname
 
   if (!isLoading) return null
 
