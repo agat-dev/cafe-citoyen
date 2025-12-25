@@ -1,3 +1,5 @@
+import Image from "next/image"
+
 interface PageContentProps {
   content?: string
   images?: Array<{
@@ -46,11 +48,12 @@ export function PageContent({ content, images }: PageContentProps) {
                   key={image.ID}
                   className="group relative aspect-video overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300"
                 >
-                  <img
+                  <Image
                     src={image.url || "/placeholder.svg"}
                     alt={image.alt || image.title || "Image"}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    loading="lazy"
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   />
                   {image.title && (
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">

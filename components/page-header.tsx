@@ -1,14 +1,14 @@
-"use client";
+"use server"
 
-import { useEffect, useState, useRef, type ReactNode } from "react";
-import { SiteCard } from "@/components/ui/site-card";
+import type { ReactNode } from "react"
+import { SiteCard } from "@/components/ui/site-card"
 
 interface PageHeaderProps {
-  title: string;
-  subtitle?: string;
-  backgroundImage?: string;
-  backgroundAlt?: string;
-  searchSection?: ReactNode; // Add optional search section
+  title: string
+  subtitle?: string
+  backgroundImage?: string
+  backgroundAlt?: string
+  searchSection?: ReactNode // Add optional search section
 }
 
 function decodeHtmlEntities(text: string): string {
@@ -22,25 +22,10 @@ function decodeHtmlEntities(text: string): string {
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
     .replace(/&#039;/g, "'")
-    .replace(/&nbsp;/g, " ");
+    .replace(/&nbsp;/g, " ")
 }
 
-export function PageHeader({
-  title,
-  subtitle,
-  backgroundImage,
-  backgroundAlt,
-  searchSection,
-}: PageHeaderProps) {
-  const [mounted, setMounted] = useState(false);
-  const signRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
-
+export function PageHeader({ title, subtitle, backgroundImage, backgroundAlt, searchSection }: PageHeaderProps) {
   return (
     <section className="relative min-h-[200px] flex items-center bg-white">
       {/* Plus d'icônes d'angle absolues sur la grille, seulement sur la carte du titre */}
@@ -79,8 +64,8 @@ export function PageHeader({
           {/* Ligne 2 : moteur de recherche sur 3 colonnes */}
           {searchSection && (
             <div className="md:col-span-3 col-span-1 border-b border-r border-black/[0.2] dark:border-white/[0.2]">
-              <SiteCard 
-                hideImage 
+              <SiteCard
+                hideImage
                 className="p-0 border-none"
                 hideCorners={false}
                 showTopLeftCorner={false}
@@ -99,5 +84,5 @@ export function PageHeader({
         </div>
       </div>
     </section>
-  );
+  )
 }
