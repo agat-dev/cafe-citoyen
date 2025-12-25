@@ -4,6 +4,7 @@ import { Red_Hat_Display } from "next/font/google"
 import { AnimatedNavWrapper } from "@/components/animated-nav-wrapper"
 import { Footer } from "@/components/footer"
 import { ScrollToTop } from "@/components/scroll-to-top"
+import { PageLoader } from "@/components/page-loader"
 import { getSiteOptions } from "@/lib/wordpress-api"
 import "./globals.css"
 
@@ -51,17 +52,20 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const siteOptions = await getSiteOptions()
+
   return (
     <html lang="fr">
       <head>
         <meta charSet="utf-8" />
       </head>
       <body suppressHydrationWarning className={redHatDisplay.variable}>
+        <PageLoader logoUrl={siteOptions?.logo_du_site?.url} logoAlt={siteOptions?.logo_du_site?.alt} />
         <ScrollToTop />
         <AnimatedNavWrapper />
         <main>{children}</main>
