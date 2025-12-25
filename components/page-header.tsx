@@ -1,5 +1,3 @@
-"use server"
-
 import type { ReactNode } from "react"
 import { SiteCard } from "@/components/ui/site-card"
 
