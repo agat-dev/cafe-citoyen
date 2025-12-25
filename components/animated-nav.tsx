@@ -81,7 +81,7 @@ export function AnimatedNav({
     <div className={cn("w-full", className)}>
       <nav
         className={cn(
-          "fixed top-0 left-0 right-0 z-[100] transition-all duration-300 min-h-10 backdrop-blur-md",
+          "fixed top-0 left-0 right-0 z-[100] transition-all duration-300 min-h-10 bg-white backdrop-blur-md",
           baseColor,
         )}
       >
