@@ -45,41 +45,31 @@ export function AnimatedNav({
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrolled = window.scrollY > 50
-      setIsScrolled(scrolled)
+      setIsScrolled(window.scrollY > 50)
     }
 
-    window.addEventListener("scroll", handleScroll)
+    window.addEventListener("scroll", handleScroll, { passive: true })
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      document.body.style.overflow = isExpanded ? "hidden" : ""
+    }
+    return () => {
+      if (typeof window !== "undefined") {
+        document.body.style.overflow = ""
+      }
+    }
+  }, [isExpanded])
+
   const toggleMenu = () => {
-      setIsExpanded((prev) => {
-        const next = !prev;
-        if (typeof window !== 'undefined') {
-          document.body.style.overflow = next ? 'hidden' : '';
-        }
-        return next;
-      });
+    setIsExpanded((prev) => !prev)
   }
 
   const handleLinkClick = () => {
-      window.scrollTo({ top: 0, behavior: "instant" })
-      setIsExpanded(false)
-      if (typeof window !== 'undefined') {
-        document.body.style.overflow = '';
-      }
-    // Nettoyage si le menu est fermé par un autre moyen (ex: resize, navigation)
-    useEffect(() => {
-      if (!isExpanded && typeof window !== 'undefined') {
-        document.body.style.overflow = '';
-      }
-      return () => {
-        if (typeof window !== 'undefined') {
-          document.body.style.overflow = '';
-        }
-      };
-    }, [isExpanded]);
+    window.scrollTo({ top: 0, behavior: "instant" })
+    setIsExpanded(false)
   }
 
   const toggleCard = (index: number, e: React.MouseEvent) => {
@@ -91,7 +81,7 @@ export function AnimatedNav({
     <div className={cn("w-full", className)}>
       <nav
         className={cn(
-          "fixed top-0 left-0 right-0 z-[100] transition-all duration-300 min-h-10 bg-white",
+          "fixed top-0 left-0 right-0 z-[100] transition-all duration-300 min-h-10 bg-white backdrop-blur-md",
           baseColor,
         )}
       >
@@ -100,25 +90,21 @@ export function AnimatedNav({
             {/* Hamburger Button */}
             <button
               onClick={toggleMenu}
-              className={cn(
-                "flex flex-col justify-center p-2 transition-transform relative z-[110]",
-              )}
+              className={cn("flex flex-col justify-center p-2 transition-transform relative z-[110]")}
               aria-label={isExpanded ? "Fermer le menu" : "Ouvrir le menu"}
-              style={{ color: menuColor, height: '40px', width: '40px' }}
+              style={{ color: menuColor, height: "40px", width: "40px" }}
             >
               <span
                 className={cn(
                   "block h-0.5 w-6 bg-current transition-all duration-300 absolute left-2 top-1/2",
-                  isExpanded ? "rotate-45" : "-translate-y-2"
+                  isExpanded ? "rotate-45" : "-translate-y-2",
                 )}
-                style={{ position: 'absolute' }}
               />
               <span
                 className={cn(
                   "block h-0.5 w-6 bg-current transition-all duration-300 absolute left-2 top-1/2",
-                  isExpanded ? "-rotate-45" : "translate-y-2"
+                  isExpanded ? "-rotate-45" : "translate-y-2",
                 )}
-                style={{ position: 'absolute' }}
               />
             </button>
 
@@ -139,40 +125,30 @@ export function AnimatedNav({
         </div>
 
         <div
-            className={cn(
-              "overflow-hidden transition-all duration-500 ease-out",
-              isExpanded ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0",
-            )}
-            onMouseEnter={e => {
-              e.currentTarget.classList.add("animated-nav-no-scroll");
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.classList.remove("animated-nav-no-scroll");
-            }}
+          className={cn(
+            "overflow-hidden transition-all duration-300 ease-out",
+            isExpanded ? "max-h-[2000px] opacity-100" : "max-h-0 opacity-0",
+          )}
         >
-          {/* Gradient overlay - more opaque at bottom */}
           <div className="relative backdrop-blur-md">
-
-            {/* Matching megamenu container background with menu bar */}
             <div className="container mx-auto px-4 lg:px-8 py-4 max-w-full overflow-x-hidden max-h-[calc(100vh-2.5rem)] lg:overflow-visible relative z-10">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border border-gray-200/80 bg-white/95 relative overflow-visible">
-                {/* Icônes d'angle pour la grille du megamenu */}
+                {/* Corner icons */}
                 <Icon className="absolute h-6 w-6 -top-3 -left-3 dark:text-white text-black z-[5]" />
                 <Icon className="absolute h-6 w-6 -top-3 -right-3 dark:text-white text-black z-[5]" />
                 <Icon className="absolute h-6 w-6 -bottom-3 -left-3 dark:text-white text-black z-[5]" />
                 <Icon className="absolute h-6 w-6 -bottom-3 -right-3 dark:text-white text-black z-[5]" />
+
                 {(items || []).map((item, idx) => (
                   <div
                     key={`${item.label}-${idx}`}
                     className={cn(
-                      "flex flex-col transition-all duration-500 ease-out relative bg-white border-r border-b border-gray-200/80",
-                      // Supprime la bordure droite sur la dernière colonne
-                      (idx % 3 === 2) && "border-r-0",
-                      // Supprime la bordure basse sur la dernière ligne
-                      (idx >= items.length - (items.length % 3 || 3)) && "border-b-0",
+                      "flex flex-col transition-all duration-300 ease-out relative bg-white border-r border-b border-gray-200/80",
+                      idx % 3 === 2 && "border-r-0",
+                      idx >= items.length - (items.length % 3 || 3) && "border-b-0",
                       "lg:min-h-[180px]",
                       expandedCardIndex === idx ? "min-h-[180px]" : "min-h-[60px] lg:min-h-[180px]",
-                      isExpanded ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0",
+                      isExpanded ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0",
                       item.label === ""
                         ? "items-center justify-center p-2"
                         : expandedCardIndex === idx
@@ -183,12 +159,10 @@ export function AnimatedNav({
                     )}
                     style={{
                       color: item.textColor,
-                      transitionDelay: `${idx * 80}ms`,
+                      transitionDelay: isExpanded ? `${Math.min(idx * 40, 200)}ms` : "0ms",
                       overflow: "visible",
                     }}
                   >
-                    {item.label !== "" && <></>}
-
                     {item.label === "" && idx === items.length - 1 ? (
                       <div className="relative w-full h-full flex items-center justify-center p-4">
                         <div className="w-full h-full flex items-center justify-center">{logo}</div>
@@ -199,9 +173,7 @@ export function AnimatedNav({
                         onClick={handleLinkClick}
                         className="relative w-full h-full flex flex-col overflow-hidden group"
                       >
-                        {/* Content overlay at bottom */}
                         <div className="relative z-10 mt-auto bg-white p-4 m-3">
-                          {/* Category badge */}
                           {item.eventCategory && (
                             <div className="mb-2">
                               <span className="inline-block px-3 py-1 text-xs font-semibold bg-primary/10 text-primary">
@@ -209,13 +181,9 @@ export function AnimatedNav({
                               </span>
                             </div>
                           )}
-
-                          {/* Event title */}
                           <h3 className="font-serif text-base font-bold mb-2 line-clamp-2 group-hover:underline">
                             {item.label}
                           </h3>
-
-                          {/* Event date */}
                           {item.eventDate && (
                             <p className="text-sm text-muted-foreground">
                               {new Date(item.eventDate).toLocaleDateString("fr-FR", {
@@ -270,7 +238,6 @@ export function AnimatedNav({
                             href={item.links?.[0]?.href || "/"}
                             onClick={handleLinkClick}
                             className="group flex items-center gap-2 transition-all hover:translate-x-1 font-semibold lg:hidden"
-                            style={{ fontSize: "16px" }}
                           >
                             <svg
                               className="h-4 w-4 opacity-70 group-hover:opacity-100 transition-opacity"
@@ -288,7 +255,6 @@ export function AnimatedNav({
                               href={lnk.href}
                               onClick={handleLinkClick}
                               className="group flex items-center gap-2 transition-all hover:translate-x-1"
-                              style={{ fontSize: "16px" }}
                             >
                               <svg
                                 className="h-4 w-4 opacity-70 group-hover:opacity-100 transition-opacity"

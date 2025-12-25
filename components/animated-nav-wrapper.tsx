@@ -6,7 +6,6 @@ export async function AnimatedNavWrapper() {
   const [pages, options, events] = await Promise.all([getWordPressPages(), getSiteOptions(), getWordPressEvents()])
 
   const sortedEvents = events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-  const latestEvents = sortedEvents.slice(0, 3)
 
   const organized = organizePagesByParent(pages)
 
@@ -26,7 +25,6 @@ export async function AnimatedNavWrapper() {
     ],
   }))
 
-  // Add events to fill remaining slots
   while (items.length < 6) {
     const eventIndex = items.length - organized.length
     const event = sortedEvents[eventIndex]
@@ -84,7 +82,8 @@ export async function AnimatedNavWrapper() {
                 alt={options.logo_du_site.alt || "Logo"}
                 fill
                 className="object-contain"
-                priority
+                sizes="32px"
+                loading="eager"
               />
             ) : (
               <div className="relative flex items-center justify-center h-full w-full rounded border-2 border-primary transition-colors group-hover:border-primary/70">
